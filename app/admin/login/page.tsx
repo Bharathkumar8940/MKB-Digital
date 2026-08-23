@@ -21,16 +21,16 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok && data.success) {
         // Perform hard navigation so browser presents HttpOnly cookie to middleware
         window.location.href = '/admin';
       } else {
-        setError(data.error || 'Authentication failed. Please check your credentials.');
+        setError(data.error || 'Authentication failed. Please verify credentials or retry in a few seconds.');
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
+    } catch (err: any) {
+      setError(err?.message || 'Connection error. Please refresh and try again.');
     } finally {
       setLoading(false);
     }
