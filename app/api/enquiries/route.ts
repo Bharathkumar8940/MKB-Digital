@@ -4,6 +4,10 @@ import { getOwnerSession } from '../../../lib/auth';
 import { EnquirySchema } from '../../../lib/validations';
 import { rateLimit } from '../../../lib/ratelimit';
 
+// Global in-memory fallback store for serverless instances
+const globalEnquiriesStore: any[] = (global as any).__mkb_enquiries_store || [];
+(global as any).__mkb_enquiries_store = globalEnquiriesStore;
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Rate Limiting (Resilient check)
@@ -23,7 +27,7 @@ export async function POST(req: NextRequest) {
     // 2. Parse & Validate Body
     const body = await req.json();
 
-    // Honeypot anti-spam check: If hidden website_url field is populated, silently return fake success
+    // Honeypot anti-spam check
     if (body.website_url && body.website_url.trim() !== '') {
       console.warn(`Spam honeypot triggered from IP ${ip}`);
       return NextResponse.json({
@@ -41,9 +45,22 @@ export async function POST(req: NextRequest) {
     }
 
     const data = validation.data;
+    const newEnquiryObj = {
+      id: `enq_${Date.now()}`,
+      name: data.name,
+      businessName: data.businessName || null,
+      email: data.email,
+      phone: data.phone || null,
+      serviceRequired: data.serviceRequired,
+      budget: data.budget || null,
+      message: data.message || '',
+      status: 'NEW',
+      ipAddress: String(ip),
+      createdAt: new Date().toISOString(),
+    };
 
     // 3. Save Enquiry to Database (with Serverless Fallback)
-    let enquiryId = `enq_${Date.now()}`;
+    let enquiryId = newEnquiryObj.id;
     try {
       const enquiry = await prisma.enquiry.create({
         data: {
@@ -59,9 +76,13 @@ export async function POST(req: NextRequest) {
         },
       });
       enquiryId = enquiry.id;
+      newEnquiryObj.id = enquiry.id;
     } catch (dbError) {
       console.warn('Database save fallback (serverless/connection warning):', dbError);
     }
+
+    // Push to global serverless fallback store
+    globalEnquiriesStore.unshift(newEnquiryObj);
 
     // 4. Trigger Email Notification to bharathkumarmatsa@gmail.com
     const notificationEmail = process.env.NOTIFICATION_EMAIL || 'bharathkumarmatsa@gmail.com';
@@ -126,11 +147,28 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const enquiries = await prisma.enquiry.findMany({
-      orderBy: { createdAt: 'desc' },
+    let dbEnquiries: any[] = [];
+    try {
+      dbEnquiries = await prisma.enquiry.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (dbErr) {
+      console.warn('Prisma enquiry fetch fallback:', dbErr);
+    }
+
+    // Merge and deduplicate by ID
+    const mergedMap = new Map<string, any>();
+    [...globalEnquiriesStore, ...dbEnquiries].forEach((item) => {
+      if (item && item.id) {
+        mergedMap.set(item.id, item);
+      }
     });
 
-    return NextResponse.json(enquiries);
+    const allEnquiries = Array.from(mergedMap.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return NextResponse.json(allEnquiries);
   } catch (error) {
     console.error('Error fetching enquiries:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
