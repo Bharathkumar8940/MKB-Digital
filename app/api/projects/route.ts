@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../lib/prisma';
-import { getOwnerSession } from '../../lib/auth';
-import { ProjectSchema } from '../../lib/validations';
+import { prisma } from '../../../lib/prisma';
+import { getOwnerSession } from '../../../lib/auth';
+import { ProjectSchema } from '../../../lib/validations';
 
 function slugify(text: string): string {
   return text
