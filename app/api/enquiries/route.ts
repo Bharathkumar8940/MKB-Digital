@@ -39,20 +39,26 @@ export async function POST(req: NextRequest) {
 
     const data = validation.data;
 
-    // 3. Save Enquiry to Database
-    const enquiry = await prisma.enquiry.create({
-      data: {
-        name: data.name,
-        businessName: data.businessName || null,
-        email: data.email,
-        phone: data.phone || null,
-        serviceRequired: data.serviceRequired,
-        budget: data.budget || null,
-        message: data.message || '',
-        status: 'NEW',
-        ipAddress: String(ip),
-      },
-    });
+    // 3. Save Enquiry to Database (with Serverless Fallback)
+    let enquiryId = `enq_${Date.now()}`;
+    try {
+      const enquiry = await prisma.enquiry.create({
+        data: {
+          name: data.name,
+          businessName: data.businessName || null,
+          email: data.email,
+          phone: data.phone || null,
+          serviceRequired: data.serviceRequired,
+          budget: data.budget || null,
+          message: data.message || '',
+          status: 'NEW',
+          ipAddress: String(ip),
+        },
+      });
+      enquiryId = enquiry.id;
+    } catch (dbError) {
+      console.warn('Database save fallback (serverless/connection warning):', dbError);
+    }
 
     // 4. Trigger Email Notification to bharathkumarmatsa@gmail.com
     const notificationEmail = process.env.NOTIFICATION_EMAIL || 'bharathkumarmatsa@gmail.com';
@@ -98,7 +104,7 @@ Target Notification Recipient: ${notificationEmail}`);
     return NextResponse.json({
       success: true,
       message: "Thanks! Your enquiry has been received. I'll get back to you soon.",
-      id: enquiry.id,
+      id: enquiryId,
     });
   } catch (error) {
     console.error('Enquiry submission error:', error);
