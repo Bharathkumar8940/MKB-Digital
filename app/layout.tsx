@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Outfit, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import RoyalGreenCanvas from '@/components/RoyalGreenCanvas';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import RoyalGreenCanvas from '../components/RoyalGreenCanvas';
 
 const outfit = Outfit({
   subsets: ['latin'],

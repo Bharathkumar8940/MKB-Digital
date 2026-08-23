@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getOwnerSession } from '@/lib/auth';
-import { EnquiryStatusSchema } from '@/lib/validations';
+import { prisma } from '../../../../lib/prisma';
+import { getOwnerSession } from '../../../../lib/auth';
+import { EnquiryStatusSchema } from '../../../../lib/validations';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {

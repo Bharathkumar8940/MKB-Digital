@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOwnerSession } from '@/lib/auth';
-import { uploadProjectImage } from '@/lib/storage';
+import { getOwnerSession } from '../../lib/auth';
+import { uploadProjectImage } from '../../lib/storage';
 
 export async function POST(req: NextRequest) {
   try {

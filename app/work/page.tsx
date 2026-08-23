@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../lib/prisma';
 import { ArrowLeft, ExternalLink, Eye, Sparkles, FolderKanban } from 'lucide-react';
 
 export const revalidate = 0; // Always fetch latest published projects

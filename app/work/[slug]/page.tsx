@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import { getOwnerSession } from '@/lib/auth';
+import { prisma } from '../../../lib/prisma';
+import { getOwnerSession } from '../../../lib/auth';
 import { ArrowLeft, ExternalLink, Code2, Calendar, Layers, ShieldCheck, Sparkles } from 'lucide-react';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {

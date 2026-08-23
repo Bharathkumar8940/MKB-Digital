@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getOwnerSession } from '@/lib/auth';
-import { EnquirySchema } from '@/lib/validations';
-import { rateLimit } from '@/lib/ratelimit';
+import { prisma } from '../../lib/prisma';
+import { getOwnerSession } from '../../lib/auth';
+import { EnquirySchema } from '../../lib/validations';
+import { rateLimit } from '../../lib/ratelimit';
 
 export async function POST(req: NextRequest) {
   try {

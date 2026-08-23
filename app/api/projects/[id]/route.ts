@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getOwnerSession } from '@/lib/auth';
-import { ProjectUpdateSchema } from '@/lib/validations';
+import { prisma } from '../../../../lib/prisma';
+import { getOwnerSession } from '../../../../lib/auth';
+import { ProjectUpdateSchema } from '../../../../lib/validations';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {

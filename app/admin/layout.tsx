@@ -1,4 +1,4 @@
-import AdminNav from '@/components/AdminNav';
+import AdminNav from '../../components/AdminNav';
 
 export const metadata = {
   title: 'MKB DIGITAL ADMIN | Owner Management Console',

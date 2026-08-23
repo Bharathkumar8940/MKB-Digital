@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { getOwnerSession } from '@/lib/auth';
+import { prisma } from '../../lib/prisma';
+import { getOwnerSession } from '../../lib/auth';
 import { redirect } from 'next/navigation';
 import { FolderKanban, CheckCircle2, FileEdit, Inbox, AlertCircle, Plus, ArrowRight, Eye } from 'lucide-react';
 
