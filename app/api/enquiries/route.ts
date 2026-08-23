@@ -6,15 +6,18 @@ import { rateLimit } from '../../../lib/ratelimit';
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Rate Limiting (3 enquiries per hour per IP to block spam)
+    // 1. Rate Limiting (Resilient check)
     const ip = req.headers.get('x-forwarded-for') || req.ip || 'anonymous_client';
-    const rateLimitRes = await rateLimit(`enquiry:${ip}`, 3, 3600);
-
-    if (!rateLimitRes.success) {
-      return NextResponse.json(
-        { error: 'You have submitted multiple enquiries recently. Please try again later.' },
-        { status: 429 }
-      );
+    try {
+      const rateLimitRes = await rateLimit(`enquiry:${ip}`, 10, 3600);
+      if (!rateLimitRes.success) {
+        return NextResponse.json(
+          { error: 'You have submitted multiple enquiries recently. Please try again later.' },
+          { status: 429 }
+        );
+      }
+    } catch (rlErr) {
+      console.warn('Rate limiting check skipped:', rlErr);
     }
 
     // 2. Parse & Validate Body
