@@ -1,0 +1,55 @@
+// Prisma schema for MKB DIGITAL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Project {
+  id               String   @id @default(uuid())
+  title            String
+  slug             String   @unique
+  category         String
+  shortDescription String
+  description      String
+  thumbnail        String
+  images           String   // JSON stringified array of image URLs
+  liveUrl          String?
+  githubUrl        String?
+  technologies     String   // JSON stringified array of technology strings
+  clientName       String?
+  year             String
+  featured         Boolean  @default(false)
+  status           String   @default("DRAFT") // DRAFT | PUBLISHED
+  displayOrder     Int      @default(0)
+  isConcept        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Enquiry {
+  id              String   @id @default(uuid())
+  name            String
+  businessName    String?
+  email           String
+  phone           String?
+  serviceRequired String
+  budget          String?
+  message         String
+  status          String   @default("NEW") // NEW | CONTACTED | IN_PROGRESS | COMPLETED | ARCHIVED
+  ipAddress       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

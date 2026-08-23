@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #060b08;
+  --bg-card: rgba(12, 22, 16, 0.7);
+  --border-emerald: rgba(0, 255, 136, 0.15);
+  --border-emerald-glow: rgba(0, 255, 136, 0.4);
+  --emerald-accent: #00ff88;
+  --emerald-gradient: linear-gradient(135deg, #00ff88 0%, #059669 100%);
+  --emerald-glow-box: 0 0 35px rgba(0, 255, 136, 0.18);
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #e2e8f0;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism Panel Utilities (GPU Accelerated) */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-emerald);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-emerald-glow);
+  box-shadow: var(--emerald-glow-box);
+}
+
+.glass-input {
+  background: rgba(8, 15, 11, 0.8);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.25);
+}
+
+.emerald-text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 40%, #00ff88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn-emerald {
+  background: linear-gradient(135deg, #00ff88 0%, #059669 100%);
+  color: #04120a;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+}
+
+.btn-emerald:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0, 255, 136, 0.5);
+}
+
+.btn-outline-emerald {
+  border: 1px solid #00ff88;
+  color: #00ff88;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-emerald:hover {
+  background: rgba(0, 255, 136, 0.1);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #060b08;
+}
+::-webkit-scrollbar-thumb {
+  background: #059669;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00ff88;
+}
