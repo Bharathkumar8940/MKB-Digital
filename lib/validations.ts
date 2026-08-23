@@ -34,9 +34,8 @@ export const EnquirySchema = z.object({
   email: z.string().email('Valid email address is required'),
   phone: z
     .string()
-    .min(10, 'Phone number must be exactly 10 digits')
-    .max(10, 'Phone number must be exactly 10 digits')
-    .regex(/^[0-9]{10}$/, 'Phone number must contain exactly 10 digits'),
+    .min(10, 'Valid phone number is required')
+    .regex(/^[0-9\+\s\-]{10,25}$/, 'Phone number must contain a valid 10-digit mobile number'),
   serviceRequired: z.string().min(2, 'Service choice is required'),
   budget: z.string().optional().nullable(),
   message: z.string().optional().nullable().default(''),
