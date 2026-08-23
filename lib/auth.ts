@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET_STRING = process.env.JWT_SECRET || 'fallback_secret_key_mkb_digital_2026';
+const JWT_SECRET_STRING = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY || 'fallback_secret_key_mkb_digital_2026';
 const JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET_STRING);
 const COOKIE_NAME = 'mkb_owner_session';
 
