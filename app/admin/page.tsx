@@ -10,23 +10,34 @@ export default async function AdminDashboardPage() {
     redirect('/admin/login');
   }
 
-  // Fetch Dashboard Metrics
-  const totalProjects = await prisma.project.count();
-  const publishedProjects = await prisma.project.count({ where: { status: 'PUBLISHED' } });
-  const draftProjects = await prisma.project.count({ where: { status: 'DRAFT' } });
-  const totalEnquiries = await prisma.enquiry.count();
-  const newEnquiries = await prisma.enquiry.count({ where: { status: 'NEW' } });
+  // Fetch Dashboard Metrics with Serverless DB Fallback
+  let totalProjects = 0;
+  let publishedProjects = 0;
+  let draftProjects = 0;
+  let totalEnquiries = 0;
+  let newEnquiries = 0;
+  let recentProjects: any[] = [];
+  let recentEnquiries: any[] = [];
 
-  // Fetch Recent Items
-  const recentProjects = await prisma.project.findMany({
-    take: 5,
-    orderBy: { updatedAt: 'desc' },
-  });
+  try {
+    totalProjects = await prisma.project.count();
+    publishedProjects = await prisma.project.count({ where: { status: 'PUBLISHED' } });
+    draftProjects = await prisma.project.count({ where: { status: 'DRAFT' } });
+    totalEnquiries = await prisma.enquiry.count();
+    newEnquiries = await prisma.enquiry.count({ where: { status: 'NEW' } });
 
-  const recentEnquiries = await prisma.enquiry.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-  });
+    recentProjects = await prisma.project.findMany({
+      take: 5,
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    recentEnquiries = await prisma.enquiry.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (err) {
+    console.warn('Dashboard DB query fallback:', err);
+  }
 
   return (
     <div className="space-y-8">

@@ -5,9 +5,12 @@ import { getOwnerSession } from '../../../lib/auth';
 import { ArrowLeft, ExternalLink, Code2, Calendar, Layers, ShieldCheck, Sparkles } from 'lucide-react';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const project = await prisma.project.findFirst({
-    where: { slug: params.slug },
-  });
+  let project: any = null;
+  try {
+    project = await prisma.project.findFirst({
+      where: { slug: params.slug },
+    });
+  } catch (err) {}
 
   if (!project) return { title: 'Project Not Found | MKB DIGITAL' };
   return {
@@ -20,11 +23,16 @@ export default async function ProjectDetailPage({ params }: { params: { slug: st
   const session = await getOwnerSession();
   const isOwner = !!session;
 
-  const project = await prisma.project.findFirst({
-    where: {
-      OR: [{ id: params.slug }, { slug: params.slug }],
-    },
-  });
+  let project: any = null;
+  try {
+    project = await prisma.project.findFirst({
+      where: {
+        OR: [{ id: params.slug }, { slug: params.slug }],
+      },
+    });
+  } catch (err) {
+    console.warn('Project detail page DB query fallback:', err);
+  }
 
   // REQUIREMENT #20 & SECURITY RULE: 404 if project is missing or draft when accessed publicly
   if (!project) {

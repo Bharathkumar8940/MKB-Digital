@@ -10,10 +10,15 @@ export const metadata = {
 };
 
 export default async function PublicWorkPage() {
-  const rawProjects = await prisma.project.findMany({
-    where: { status: 'PUBLISHED' },
-    orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
-  });
+  let rawProjects: any[] = [];
+  try {
+    rawProjects = await prisma.project.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
+    });
+  } catch (err) {
+    console.warn('Public Work page DB query fallback:', err);
+  }
 
   const projects = rawProjects.map((p) => ({
     ...p,
