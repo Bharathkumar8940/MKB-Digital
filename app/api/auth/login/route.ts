@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Authentication successful',
-      user: { email: admin.email, role: 'OWNER' },
+      user: { email: email.trim(), role: 'OWNER' },
     });
   } catch (error) {
     console.error('Login API Error:', error);
