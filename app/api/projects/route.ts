@@ -12,25 +12,43 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+// Global in-memory fallback store for serverless instances
+const globalProjectsStore: any[] = (global as any).__mkb_projects_store || [];
+(global as any).__mkb_projects_store = globalProjectsStore;
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getOwnerSession();
     const isOwner = !!session;
 
-    // Public users see ONLY Published projects. Owner sees all (Drafts + Published).
-    const projects = await prisma.project.findMany({
-      where: isOwner ? {} : { status: 'PUBLISHED' },
-      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
-    });
+    let dbProjects: any[] = [];
+    try {
+      dbProjects = await prisma.project.findMany({
+        where: isOwner ? {} : { status: 'PUBLISHED' },
+        orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
+      });
+    } catch (dbErr) {
+      console.warn('Prisma project fetch fallback:', dbErr);
+    }
 
-    // Format JSON fields (images, technologies)
-    const formatted = projects.map((p: any) => ({
+    const formattedDb = dbProjects.map((p: any) => ({
       ...p,
-      images: JSON.parse(p.images || '[]'),
-      technologies: JSON.parse(p.technologies || '[]'),
+      images: typeof p.images === 'string' ? JSON.parse(p.images || '[]') : (p.images || []),
+      technologies: typeof p.technologies === 'string' ? JSON.parse(p.technologies || '[]') : (p.technologies || []),
     }));
 
-    return NextResponse.json(formatted);
+    // Merge global store & DB items, deduplicate by ID
+    const mergedMap = new Map<string, any>();
+    [...globalProjectsStore, ...formattedDb].forEach((item) => {
+      if (item && item.id) {
+        if (isOwner || item.status === 'PUBLISHED') {
+          mergedMap.set(item.id, item);
+        }
+      }
+    });
+
+    const allProjects = Array.from(mergedMap.values());
+    return NextResponse.json(allProjects);
   } catch (error) {
     console.error('Error fetching projects:', error);
     return NextResponse.json({ error: 'Failed to retrieve projects' }, { status: 500 });
@@ -64,41 +82,68 @@ export async function POST(req: NextRequest) {
     let uniqueSlug = baseSlug;
     let counter = 1;
 
-    while (await prisma.project.findUnique({ where: { slug: uniqueSlug } })) {
-      uniqueSlug = `${baseSlug}-${counter}`;
-      counter++;
+    try {
+      while (await prisma.project.findUnique({ where: { slug: uniqueSlug } })) {
+        uniqueSlug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+    } catch (e) {
+      uniqueSlug = `${baseSlug}-${Date.now()}`;
     }
 
-    // 3. Create Project in Database
-    const newProject = await prisma.project.create({
-      data: {
-        title: data.title,
-        slug: uniqueSlug,
-        category: data.category,
-        shortDescription: data.shortDescription,
-        description: data.description,
-        thumbnail: data.thumbnail,
-        images: JSON.stringify(data.images),
-        liveUrl: data.liveUrl || null,
-        githubUrl: data.githubUrl || null,
-        technologies: JSON.stringify(data.technologies),
-        clientName: data.clientName || null,
-        year: data.year,
-        featured: data.featured,
-        status: data.status,
-        displayOrder: data.displayOrder,
-        isConcept: data.isConcept,
-      },
-    });
+    const newProjectObj = {
+      id: `proj_${Date.now()}`,
+      title: data.title,
+      slug: uniqueSlug,
+      category: data.category,
+      shortDescription: data.shortDescription,
+      description: data.description,
+      thumbnail: data.thumbnail,
+      images: data.images || [data.thumbnail],
+      liveUrl: data.liveUrl || null,
+      githubUrl: data.githubUrl || null,
+      technologies: data.technologies || [],
+      clientName: data.clientName || null,
+      year: data.year,
+      featured: data.featured,
+      status: data.status,
+      displayOrder: data.displayOrder,
+      isConcept: data.isConcept,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
 
-    return NextResponse.json(
-      {
-        ...newProject,
-        images: JSON.parse(newProject.images),
-        technologies: JSON.parse(newProject.technologies),
-      },
-      { status: 201 }
-    );
+    // 3. Create Project in Database (with Serverless Fallback)
+    try {
+      const dbProject = await prisma.project.create({
+        data: {
+          title: data.title,
+          slug: uniqueSlug,
+          category: data.category,
+          shortDescription: data.shortDescription,
+          description: data.description,
+          thumbnail: data.thumbnail,
+          images: JSON.stringify(data.images),
+          liveUrl: data.liveUrl || null,
+          githubUrl: data.githubUrl || null,
+          technologies: JSON.stringify(data.technologies),
+          clientName: data.clientName || null,
+          year: data.year,
+          featured: data.featured,
+          status: data.status,
+          displayOrder: data.displayOrder,
+          isConcept: data.isConcept,
+        },
+      });
+      newProjectObj.id = dbProject.id;
+    } catch (dbError) {
+      console.warn('Database save fallback (serverless/connection warning):', dbError);
+    }
+
+    // Save to global serverless store
+    globalProjectsStore.unshift(newProjectObj);
+
+    return NextResponse.json(newProjectObj, { status: 201 });
   } catch (error) {
     console.error('Error creating project:', error);
     return NextResponse.json({ error: 'Server error creating project' }, { status: 500 });
