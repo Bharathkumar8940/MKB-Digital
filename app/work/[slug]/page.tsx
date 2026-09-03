@@ -4,6 +4,10 @@ import { prisma } from '../../../lib/prisma';
 import { getOwnerSession } from '../../../lib/auth';
 import { ArrowLeft, ExternalLink, Code2, Calendar, Layers, ShieldCheck, Sparkles } from 'lucide-react';
 
+export async function generateStaticParams() {
+  return [{ slug: 'sample-project' }];
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   let project: any = null;
   try {

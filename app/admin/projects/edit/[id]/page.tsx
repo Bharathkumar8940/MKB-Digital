@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Upload, Plus, Trash2, ArrowLeft, AlertCircle } from 'lucide-react';
-
 export default function EditProjectPage() {
   const router = useRouter();
   const params = useParams();
