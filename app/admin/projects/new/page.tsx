@@ -39,6 +39,15 @@ export default function AddProjectPage() {
     setUploadingThumb(true);
     setError(null);
 
+    // Client-side instant FileReader Data URI fallback
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setFormData((prev) => ({ ...prev, thumbnail: event.target!.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+
     const uploadFormData = new FormData();
     uploadFormData.append('file', file);
 
@@ -51,11 +60,9 @@ export default function AddProjectPage() {
       const data = await res.json();
       if (res.ok && data.url) {
         setFormData((prev) => ({ ...prev, thumbnail: data.url }));
-      } else {
-        setError(data.error || 'Failed to upload thumbnail image');
       }
     } catch (err) {
-      setError('Upload request failed');
+      console.warn('Server upload fallback to client Data URL');
     } finally {
       setUploadingThumb(false);
     }

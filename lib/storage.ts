@@ -41,7 +41,7 @@ export async function uploadProjectImage(fileBuffer: Buffer, fileName: string, m
     }
   }
 
-  // 2. Local Fallback: Save to /public/uploads/ directory
+  // 2. Local Fallback: Try saving to /public/uploads/ or return Base64 Data URI for serverless
   try {
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     if (!fs.existsSync(uploadDir)) {
@@ -52,7 +52,9 @@ export async function uploadProjectImage(fileBuffer: Buffer, fileName: string, m
     fs.writeFileSync(filePath, fileBuffer);
     return `/uploads/${cleanFileName}`;
   } catch (fsErr) {
-    console.error('Local file write error:', fsErr);
-    throw new Error('Failed to store image file');
+    console.warn('Serverless read-only filesystem detected, converting image to Data URI fallback:', fsErr);
+    // Base64 Data URI Fallback for Serverless / Read-Only environments
+    const base64Image = fileBuffer.toString('base64');
+    return `data:${mimeType || 'image/png'};base64,${base64Image}`;
   }
 }
