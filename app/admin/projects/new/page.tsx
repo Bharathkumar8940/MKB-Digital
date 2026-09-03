@@ -139,7 +139,8 @@ export default function AddProjectPage() {
         router.push('/admin/projects');
         router.refresh();
       } else {
-        setError(data.error || 'Failed to save project. Verify all required fields.');
+        const detailMsg = data.details ? JSON.stringify(data.details) : '';
+        setError(data.error ? `${data.error} ${detailMsg}` : 'Failed to save project.');
       }
     } catch (err) {
       setError('Network error saving project.');
